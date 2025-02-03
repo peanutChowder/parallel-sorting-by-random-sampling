@@ -32,7 +32,7 @@ fn thread_quicksort_partition(data: &mut Box<[u32]>, low: usize, high: usize) ->
 fn thread_quicksort(data: &mut Box<[u32]>, low: usize, high: usize) {
     if low < high {
         let pivot = thread_quicksort_partition(data, low, high);
-        if pivot > 0 {
+        if pivot > low {
             thread_quicksort(data, low, pivot - 1);
         }
         thread_quicksort(data, pivot + 1, high);
@@ -56,10 +56,16 @@ fn verify_sorted(data: &[u32]) -> bool {
 }
 
 fn main() {
-    let array_len = 500_000;
-    for i in 0..3 {
-        println!("---------------------------");
-        println!("Run #{}", i + 1);
+    let array_len = 100_000;
+    let mut warm_ups = 1;
+
+    for i in 0..4 {
+        if warm_ups > 0 {
+            println!("WARMUP!!")
+        } else {
+            println!("---------------------------");
+            println!("Run #{}", i - warm_ups);
+        }
         let mut data = generate_data(array_len, 0, 50);
 
         let start = Instant::now();
@@ -71,6 +77,11 @@ fn main() {
         let success = verify_sorted(&data);
         let duration = start.elapsed();
         println!("Time elapsed in verification: {:?}", duration);
-        println!("\nRun #{} success status: {}", i + 1, if success {"success."} else {"FAIL."});
+
+        if warm_ups > 0 {
+            warm_ups -= 1;
+        } else {
+            println!("\nRun #{} success status: {}", i - warm_ups, if success {"success."} else {"FAIL."});
+        }
     }
 }

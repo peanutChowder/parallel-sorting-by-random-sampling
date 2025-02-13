@@ -2,10 +2,10 @@ use rayon::prelude::*;
 use rand::Rng;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use quicksort::quicksort;
 
-const LOG_RUN_INFO: bool = true;
+const LOG_RUN_INFO: bool = false;
 
 fn generate_data(n: usize, start: u32, end: u32) -> Vec<u32> {
     let time_start = Instant::now();
@@ -127,7 +127,8 @@ fn verify_sorted(data: &[u32]) -> bool {
     data.windows(2).all(|w| w[0] <= w[1])
 }
 
-fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_val: u32, max_val: u32, p: usize) {
+fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_val: u32, max_val: u32, p: usize) -> Vec<u128> {
+    let mut runtimes = Vec::new();
     if LOG_RUN_INFO {
         println!("-------------------{name}--------------------------------------");
     }
@@ -153,6 +154,7 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
         if LOG_RUN_INFO {
             println!("Time elapsed in {name}: {:?}", duration);
         }
+        runtimes.push(duration.as_millis());
 
         let start = Instant::now();
         let success = verify_sorted(&data);
@@ -170,13 +172,38 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
                 if success { "success." } else { "FAIL." }
             );
         }
+        if !success {println!("!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!!!!!!!!!! Incorrect sort output!")}
     }
     if LOG_RUN_INFO {
         println!("------------------------------------------");
     }
+
+    runtimes
 }
 
 fn main() {
-    run_tests("psrs", 2, 5, 1_000, 0, 50, 10);
-    run_tests("serial", 2, 5, 1_000, 0, 50, 10);
+    let num_runs = 5;
+
+    // let num_threads = 50;
+    // for data_len in (0..100_000_001).step_by(10_000_000) {
+    //     if data_len == 0 {
+    //         continue;
+    //     }
+    //     let psrs_runs = run_tests("psrs", 2, num_runs, data_len, 0, 50, num_threads);
+    //     let serial_runs = run_tests("serial", 2, num_runs, data_len, 0, 50, num_threads);
+    //
+    //     let psrs_avg = psrs_runs.iter().sum::<u128>() / psrs_runs.len() as u128;
+    //     let serial_avg = serial_runs.iter().sum::<u128>() / serial_runs.len() as u128;
+    //
+    //     println!("{data_len}\t{psrs_avg}\t{serial_avg}")
+    // }
+
+    let serial_runs = run_tests("serial", 2, num_runs, 100_000_000, 0, 50, 1);
+    let serial_avg = serial_runs.iter().sum::<u128>() / serial_runs.len() as u128;
+    println!("serial baseline {}", serial_avg);
+    for num_threads in [4, 8, 16, 32, 64, 128] {
+        let psrs_runs = run_tests("psrs", 2, num_runs, 100_000_000, 0, 50, num_threads);
+        let psrs_avg = psrs_runs.iter().sum::<u128>() / psrs_runs.len() as u128;
+        println!("{num_threads}\t{psrs_avg}")
+    }
 }

@@ -4,17 +4,14 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Instant;
 
-const LOG_SPECIFIC: bool = false;
-const ARRAY_LEN: usize = 10_000_000;
-const P: usize = 10;
 
 fn generate_data(n: usize, start: u32, end: u32) -> Vec<u32> {
     let time_start = Instant::now();
     let mut data = Vec::with_capacity(n);
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     for _ in 0..n {
-        data.push(rng.gen_range(start..end));
+        data.push(rng.random_range(start..end));
     }
 
     let duration = time_start.elapsed();
@@ -48,9 +45,8 @@ fn k_way_merge(slices: &[&[u32]]) -> Vec<u32> {
 }
 
 /// The PSRS implementation using Rayon for parallelism.
-fn psrs(data: &mut [u32]) {
+fn psrs(data: &mut [u32], p: usize) {
     let n = data.len();
-    let p = P;
     let block_size = n / p;
 
     // Phase 1: Sort each chunk in parallel.
@@ -127,7 +123,7 @@ fn verify_sorted(data: &[u32]) -> bool {
     data.windows(2).all(|w| w[0] <= w[1])
 }
 
-fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, min_val: u32, max_val: u32) {
+fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_val: u32, max_val: u32, p: usize) {
     println!("-------------------{name}--------------------------------------");
     for i in (-warm_ups + 1)..(num_runs + 1) {
         if warm_ups > 0 {
@@ -136,11 +132,11 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, min_val: u32, max_val
             println!("---------------------------");
             println!("Run #{} PSRS", i);
         }
-        let mut data = generate_data(ARRAY_LEN, min_val, max_val);
+        let mut data = generate_data(data_len, min_val, max_val);
 
         let start = Instant::now();
         if name == "psrs" {
-            psrs(&mut data);
+            psrs(&mut data, p);
         } else {
             data.sort_unstable();
         }
@@ -166,6 +162,6 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, min_val: u32, max_val
 }
 
 fn main() {
-    run_tests("psrs", 2, 5, 0, 50);
-    run_tests("serial", 2, 5, 0, 50);
+    run_tests("psrs", 2, 5, 10_000_000, 0, 50, 10);
+    run_tests("serial", 2, 5, 10_000_000, 0, 50, 10);
 }

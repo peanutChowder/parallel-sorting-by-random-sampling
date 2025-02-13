@@ -3,7 +3,7 @@ use rand::Rng;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Instant;
-
+use quicksort::quicksort;
 
 fn generate_data(n: usize, start: u32, end: u32) -> Vec<u32> {
     let time_start = Instant::now();
@@ -52,7 +52,7 @@ fn psrs(data: &mut [u32], p: usize) {
     // Phase 1: Sort each chunk in parallel.
     data.par_chunks_mut(block_size)
         .for_each(|chunk| {
-            chunk.sort_unstable();
+            quicksort(chunk);
         });
 
     // Phase 2: From each sorted chunk, take p regular samples.
@@ -73,7 +73,7 @@ fn psrs(data: &mut [u32], p: usize) {
         .collect();
 
     // The main thread sorts the local samples
-    samples.sort_unstable();
+    quicksort(&mut samples);
 
     // Choose p-1 pivots.
     let pivots: Vec<u32> = (1..p).map(|i| samples[i * p]).collect();
@@ -130,7 +130,7 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
             println!("WARMUP!!");
         } else {
             println!("---------------------------");
-            println!("Run #{} PSRS", i);
+            println!("Run #{i} {name}");
         }
         let mut data = generate_data(data_len, min_val, max_val);
 
@@ -138,7 +138,7 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
         if name == "psrs" {
             psrs(&mut data, p);
         } else {
-            data.sort_unstable();
+            quicksort(&mut data);
         }
         let duration = start.elapsed();
         println!("Time elapsed in psrs: {:?}", duration);

@@ -73,6 +73,7 @@ checksum = "b5aba8db14291edd000dfcc4d620c7ebfb122c613afb886ca8803fa4e128a20a"
 name = "parallel-sorting-by-random-sampling"
 version = "0.1.0"
 dependencies = [
+ "quicksort",
  "rand",
  "rayon",
 ]
@@ -94,6 +95,12 @@ checksum = "60946a68e5f9d28b0dc1c21bb8a97ee7d018a8b322fa57838ba31cc878e22d99"
 dependencies = [
  "unicode-ident",
 ]
+
+[[package]]
+name = "quicksort"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22128d5c185eef35844bb5d13a1454ce06280b18d3f1b481d516054a0c0f1918"
 
 [[package]]
 name = "quote"

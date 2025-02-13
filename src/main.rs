@@ -5,6 +5,8 @@ use std::collections::BinaryHeap;
 use std::time::Instant;
 use quicksort::quicksort;
 
+const LOG_RUN_INFO: bool = true;
+
 fn generate_data(n: usize, start: u32, end: u32) -> Vec<u32> {
     let time_start = Instant::now();
     let mut data = Vec::with_capacity(n);
@@ -15,7 +17,9 @@ fn generate_data(n: usize, start: u32, end: u32) -> Vec<u32> {
     }
 
     let duration = time_start.elapsed();
-    println!("Time elapsed for generation: {:?}", duration);
+    if LOG_RUN_INFO {
+        println!("Time elapsed for generation: {:?}", duration);
+    }
     data
 }
 
@@ -124,14 +128,19 @@ fn verify_sorted(data: &[u32]) -> bool {
 }
 
 fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_val: u32, max_val: u32, p: usize) {
-    println!("-------------------{name}--------------------------------------");
+    if LOG_RUN_INFO {
+        println!("-------------------{name}--------------------------------------");
+    }
     for i in (-warm_ups + 1)..(num_runs + 1) {
-        if warm_ups > 0 {
-            println!("WARMUP!!");
-        } else {
-            println!("---------------------------");
-            println!("Run #{i} {name}");
+        if LOG_RUN_INFO {
+            if warm_ups > 0 {
+                println!("WARMUP!!");
+            } else {
+                println!("---------------------------");
+                println!("Run #{i} {name}");
+            }
         }
+
         let mut data = generate_data(data_len, min_val, max_val);
 
         let start = Instant::now();
@@ -141,16 +150,20 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
             quicksort(&mut data);
         }
         let duration = start.elapsed();
-        println!("Time elapsed in psrs: {:?}", duration);
+        if LOG_RUN_INFO {
+            println!("Time elapsed in {name}: {:?}", duration);
+        }
 
         let start = Instant::now();
         let success = verify_sorted(&data);
         let duration = start.elapsed();
-        println!("Time elapsed in verification: {:?}", duration);
+        if LOG_RUN_INFO {
+            println!("Time elapsed in verification: {:?}", duration);
+        }
 
         if warm_ups > 0 {
             warm_ups -= 1;
-        } else {
+        } else if LOG_RUN_INFO {
             println!(
                 "\nRun #{} success status: {}",
                 i,
@@ -158,10 +171,12 @@ fn run_tests(name: &str, mut warm_ups: i32, num_runs: i32, data_len: usize, min_
             );
         }
     }
-    println!("------------------------------------------");
+    if LOG_RUN_INFO {
+        println!("------------------------------------------");
+    }
 }
 
 fn main() {
-    run_tests("psrs", 2, 5, 10_000_000, 0, 50, 10);
-    run_tests("serial", 2, 5, 10_000_000, 0, 50, 10);
+    run_tests("psrs", 2, 5, 1_000, 0, 50, 10);
+    run_tests("serial", 2, 5, 1_000, 0, 50, 10);
 }
